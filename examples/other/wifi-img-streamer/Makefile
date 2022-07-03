@@ -1,9 +1,11 @@
 io=uart
 PMSIS_OS = freertos
 
-ifeq ($(SETUP_WIFI_AP), 1)
-APP_CFLAGS += -DSETUP_WIFI_AP
-endif
+#ifeq ($(SETUP_WIFI_AP), 1)
+#APP_CFLAGS += -DSETUP_WIFI_AP
+#endif
+
+APP_CFLAGS += -DSETUP_WIFI
 
 APP = wifi-img-streamer
 APP_SRCS += wifi-img-streamer.c ../../../lib/cpx/src/com.c ../../../lib/cpx/src/cpx.c

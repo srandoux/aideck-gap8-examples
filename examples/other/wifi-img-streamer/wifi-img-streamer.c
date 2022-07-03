@@ -197,6 +197,37 @@ void setupWiFi(void) {
 }
 #endif
 
+#ifdef SETUP_WIFI
+void setupWiFi(void) {
+  static char ssid[] = "";
+  static char mdp[] = "";
+
+  cpxPrintToConsole(LOG_TO_CRTP, "Setting up WiFi\n");
+  // Set up the routing for the WiFi CTRL packets
+  txp.route.destination = CPX_T_ESP32;
+  rxp.route.source = CPX_T_GAP8;
+  txp.route.function = CPX_F_WIFI_CTRL;
+  WiFiCTRLPacket_t * wifiCtrl = (WiFiCTRLPacket_t*) txp.data;
+
+  wifiCtrl->cmd = WIFI_CTRL_SET_KEY;
+  memcpy(wifiCtrl->data, mdp, sizeof(mdp));
+  txp.dataLength = sizeof(mdp);
+  cpxSendPacketBlocking(&txp);
+
+  wifiCtrl->cmd = WIFI_CTRL_SET_SSID;
+  memcpy(wifiCtrl->data, ssid, sizeof(ssid));
+  txp.dataLength = sizeof(ssid);
+  cpxSendPacketBlocking(&txp);
+
+  wifiCtrl->cmd = WIFI_CTRL_WIFI_CONNECT;
+  wifiCtrl->data[0] = 0x00;
+  txp.dataLength = 2;
+  cpxSendPacketBlocking(&txp);
+  cpxPrintToConsole(LOG_TO_CRTP, "connect to wifi...\n");
+
+}
+#endif
+
 void camera_task(void *parameters)
 {
   vTaskDelay(2000);
@@ -204,7 +235,9 @@ void camera_task(void *parameters)
 #ifdef SETUP_WIFI_AP
   setupWiFi();
 #endif
-
+#ifdef SETUP_WIFI
+  setupWiFi();
+#endif
   cpxPrintToConsole(LOG_TO_CRTP, "Starting camera task...\n");
   uint32_t resolution = CAM_WIDTH * CAM_HEIGHT;
   uint32_t captureSize = resolution * sizeof(unsigned char);
